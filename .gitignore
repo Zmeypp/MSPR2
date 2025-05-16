@@ -1,0 +1,59 @@
+# Ignore tout sauf les dossiers/fichiers projets explicitement ajoutés
+
+# Dossiers personnels à ignorer (Documents, Desktop, etc.)
+Desktop/
+Documents/
+Downloads/
+Movies/
+Music/
+Pictures/
+Public/
+Library/
+
+# Dossiers de configuration systèmes ou apps
+.Trash/
+.DS_Store
+.npm/
+.parsec/
+.psql_history
+.docker/
+.kube/
+.lesshst
+.local/
+.mysql_history
+.vscode/
+.zprofile
+.zsh_history
+.zshrc
+.zsh_sessions
+.bash_profile
+.CFUserTextEncoding
+
+# Ignorer les fichiers temporaires ou logs
+*.log
+*.tmp
+*.swp
+*.bak
+
+# Node modules (si tu ne commit pas le node_modules)
+node_modules/
+
+# Build output si applicable
+dist/
+build/
+
+# En cas de présence, dossiers Python virtuels
+venv/
+__pycache__/
+
+# Ignore fichiers secrets (ex: fichiers de config sensibles)
+.env
+*.secret
+
+# Ignore fichiers de lock si tu ne souhaites pas les partager
+package-lock.json
+yarn.lock
+
+# Ignore IDE/editor spécifiques
+.idea/
+*.code-workspace

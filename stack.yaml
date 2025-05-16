@@ -1,0 +1,37 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://127.0.0.1:31112
+functions:
+  generate-password:
+    lang: python3-http
+    handler: ./generate-password
+    image: lmaye/generate-password:latest
+    secrets:
+     - db-credentials
+    environment:
+      host: /var/openfaas/secrets/host
+      user: /var/openfaas/secrets/user
+      password: /var/openfaas/secrets/password
+
+  generate-mfa:
+    lang: python3-http
+    handler: ./generate-mfa
+    image: lmaye/generate-mfa:latest
+    secrets:
+     - db-credentials
+    environment:
+      host: /var/openfaas/secrets/host
+      user: /var/openfaas/secrets/user
+      password: /var/openfaas/secrets/password
+
+  authenticate-user:
+    lang: python3-http
+    handler: ./authenticate-user
+    image: lmaye/authenticate-user:latest
+    secrets:
+     - db-credentials
+    environment:
+      host: /var/openfaas/secrets/host
+      user: /var/openfaas/secrets/user
+      password: /var/openfaas/secrets/password

@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mfa-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mfa-ui
+  template:
+    metadata:
+      labels:
+        app: mfa-ui
+    spec:
+      containers:
+      - name: mfa-ui
+        image: lmaye/mfa-ui:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
+
