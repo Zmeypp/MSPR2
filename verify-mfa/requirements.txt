@@ -1,0 +1,5 @@
+pyotp
+mysql-connector-python
+cryptography
+requests
+qrcode

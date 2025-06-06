@@ -1,0 +1,41 @@
+provider:
+  name: openfaas
+  gateway: http://127.0.0.1:8080
+
+functions:
+  create-user:
+    lang: python3-http
+    handler: ./create-user
+    image: docker.io/lmaye/create-user:latest
+    secrets:
+      - mysql-pwd
+      - fernet-key
+    environment:
+      MYSQL_HOST: mysql.default.svc.cluster.local
+      MYSQL_PWD: /var/openfaas/secrets/mysql_pwd
+      FERNET_KEY: /var/openfaas/secrets/fernet_key
+
+  verify-mfa:
+    lang: python3-http
+    handler: ./verify-mfa
+    image: docker.io/lmaye/verify-mfa:latest
+    secrets:
+      - mysql-pwd
+      - fernet-key
+    environment:
+      MYSQL_HOST: mysql.default.svc.cluster.local
+      MYSQL_PWD: /var/openfaas/secrets/mysql_pwd
+      FERNET_KEY: /var/openfaas/secrets/fernet_key
+      GATEWAY_URL: http://gateway.openfaas:8080
+
+  rotate-mfa-secret:
+    lang: python3-http
+    handler: ./rotate-mfa-secret
+    image: docker.io/lmaye/rotate-mfa-secret:latest
+    secrets:
+      - mysql-pwd
+      - fernet-key
+    environment:
+      MYSQL_HOST: mysql.default.svc.cluster.local
+      MYSQL_PWD: /var/openfaas/secrets/mysql_pwd
+      FERNET_KEY: /var/openfaas/secrets/fernet_key
