@@ -1,0 +1,4 @@
+pyotp
+qrcode
+mysql-connector-python
+Pillow

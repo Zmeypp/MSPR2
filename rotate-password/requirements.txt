@@ -1,6 +1,4 @@
 mysql-connector-python
-cryptography
-qrcode
-pyotp
-Pillow
 bcrypt
+qrcode
+Pillow

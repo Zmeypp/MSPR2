@@ -12,8 +12,8 @@ functions:
       - fernet-key
     environment:
       MYSQL_HOST: mysql.default.svc.cluster.local
-      MYSQL_PWD: /var/openfaas/secrets/mysql_pwd
-      FERNET_KEY: /var/openfaas/secrets/fernet_key
+      MYSQL_PWD: /var/openfaas/secrets/mysql-pwd
+      FERNET_KEY: /var/openfaas/secrets/fernet-key
 
   verify-mfa:
     lang: python3-http
@@ -24,18 +24,40 @@ functions:
       - fernet-key
     environment:
       MYSQL_HOST: mysql.default.svc.cluster.local
-      MYSQL_PWD: /var/openfaas/secrets/mysql_pwd
-      FERNET_KEY: /var/openfaas/secrets/fernet_key
+      MYSQL_PWD: /var/openfaas/secrets/mysql-pwd
+      FERNET_KEY: /var/openfaas/secrets/fernet-key
       GATEWAY_URL: http://gateway.openfaas:8080
 
-  rotate-mfa-secret:
+  login:
     lang: python3-http
-    handler: ./rotate-mfa-secret
-    image: docker.io/lmaye/rotate-mfa-secret:latest
+    handler: ./login
+    image: docker.io/lmaye/login:latest
     secrets:
       - mysql-pwd
       - fernet-key
     environment:
       MYSQL_HOST: mysql.default.svc.cluster.local
-      MYSQL_PWD: /var/openfaas/secrets/mysql_pwd
-      FERNET_KEY: /var/openfaas/secrets/fernet_key
+      MYSQL_PWD: /var/openfaas/secrets/mysql-pwd
+      FERNET_KEY: /var/openfaas/secrets/fernet-key
+
+  setup-mfa:
+    lang: python3-http
+    handler: ./setup-mfa
+    image: docker.io/lmaye/setup-mfa:latest
+    secrets:
+      - mysql-pwd
+      - fernet-key
+    environment:
+      MYSQL_HOST: mysql.default.svc.cluster.local
+      MYSQL_PWD: /var/openfaas/secrets/mysql-pwd
+      FERNET_KEY: /var/openfaas/secrets/fernet-key
+
+  rotate-password:
+    lang: python3-http
+    handler: ./rotate-password
+    image: docker.io/lmaye/rotate-password:latest
+    secrets:
+      - mysql-pwd
+    environment:
+      MYSQL_HOST: mysql.default.svc.cluster.local
+      MYSQL_PWD: /var/openfaas/secrets/mysql-pwd

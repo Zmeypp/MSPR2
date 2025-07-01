@@ -1,6 +1,6 @@
-import json
+import json, os, time
 import mysql.connector
-import pyotp
+import bcrypt
 
 def handle(event, context):
     cors_headers = {
@@ -19,18 +19,20 @@ def handle(event, context):
     try:
         data = json.loads(event.body)
         username = data.get("username")
-        code = data.get("code")
+        password = data.get("password")
 
-        if not username or not code:
+        if not username or not password:
             return {
                 "statusCode": 400,
                 "headers": cors_headers,
-                "body": json.dumps({"error": "Missing username or code"})
+                "body": json.dumps({"error": "Missing username or password"})
             }
 
+        # Lire mot de passe MySQL
         with open('/var/openfaas/secrets/mysql-pwd', 'r') as f:
             mysql_pwd = f.read().strip()
 
+        # Connexion MySQL
         conn = mysql.connector.connect(
             host="mysql.default.svc.cluster.local",
             user="root",
@@ -38,7 +40,7 @@ def handle(event, context):
             database="openfaas"
         )
         cursor = conn.cursor()
-        cursor.execute("SELECT mfa_secret FROM users WHERE username = %s", (username,))
+        cursor.execute("SELECT password, mfa_secret FROM users WHERE username = %s", (username,))
         row = cursor.fetchone()
 
         if not row:
@@ -50,25 +52,28 @@ def handle(event, context):
                 "body": json.dumps({"error": "User not found"})
             }
 
-        mfa_secret = row[0]
-        totp = pyotp.TOTP(mfa_secret)
+        hashed_password, mfa_secret = row
 
-        if not totp.verify(code):
+        # Vérifier mot de passe
+        if not bcrypt.checkpw(password.encode(), hashed_password.encode()):
             cursor.close()
             conn.close()
             return {
                 "statusCode": 401,
                 "headers": cors_headers,
-                "body": json.dumps({"error": "Invalid MFA code"})
+                "body": json.dumps({"error": "Invalid password"})
             }
 
         cursor.close()
         conn.close()
 
+        # Indiquer si MFA est configuré
+        mfa_configured = mfa_secret is not None and mfa_secret != ""
+
         return {
             "statusCode": 200,
             "headers": cors_headers,
-            "body": json.dumps({"message": "MFA verified successfully"})
+            "body": json.dumps({"mfa_configured": mfa_configured})
         }
 
     except Exception as e:

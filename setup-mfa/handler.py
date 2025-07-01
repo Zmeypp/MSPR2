@@ -1,4 +1,4 @@
-import json, os, time, base64, io
+import json, time, base64, io
 import mysql.connector
 import pyotp
 import qrcode
@@ -10,7 +10,6 @@ def handle(event, context):
         "Access-Control-Allow-Headers": "Content-Type",
     }
 
-    # Gérer la requête OPTIONS (pré-vol CORS)
     if hasattr(event, "httpMethod") and event.httpMethod == "OPTIONS":
         return {
             "statusCode": 204,
@@ -29,7 +28,7 @@ def handle(event, context):
                 "body": json.dumps({"error": "Missing username"})
             }
 
-        # Lire le mot de passe MySQL
+        # Lecture mot de passe MySQL secret
         with open('/var/openfaas/secrets/mysql-pwd', 'r') as f:
             mysql_pwd = f.read().strip()
 
@@ -41,53 +40,30 @@ def handle(event, context):
             database="openfaas"
         )
         cursor = conn.cursor()
-        cursor.execute("SELECT mfa_secret, gendate FROM users WHERE username = %s", (username,))
-        row = cursor.fetchone()
 
-        if not row:
-            cursor.close()
-            conn.close()
-            return {
-                "statusCode": 404,
-                "headers": cors_headers,
-                "body": json.dumps({"error": "User not found"})
-            }
-
-        mfa_secret, gendate = row
-        now = int(time.time())
-        six_months = 15778800  # 6 mois en secondes
-
-        if now - gendate < six_months:
-            # MFA pas expirée
-            cursor.close()
-            conn.close()
-            return {
-                "statusCode": 200,
-                "headers": cors_headers,
-                "body": json.dumps({"message": "MFA is not expired"})
-            }
-
-        # MFA expirée => générer un nouveau secret et QR code
+        # Générer un nouveau secret MFA
         new_secret = pyotp.random_base32()
         totp_uri = pyotp.totp.TOTP(new_secret).provisioning_uri(name=username, issuer_name="MSPR-Project")
 
+        # Générer QR code du TOTP URI
         qr = qrcode.make(totp_uri)
         buf = io.BytesIO()
         qr.save(buf, format='PNG')
         qr_base64 = base64.b64encode(buf.getvalue()).decode()
 
-        # Mise à jour en base
-        now = int(time.time())
-        cursor.execute("UPDATE users SET mfa_secret = %s, gendate = %s WHERE username = %s",
-                       (new_secret, now, username))
+        # Mettre à jour le secret MFA en base pour cet utilisateur
+        cursor.execute("UPDATE users SET mfa_secret = %s WHERE username = %s", (new_secret, username))
         conn.commit()
+
         cursor.close()
         conn.close()
 
         return {
             "statusCode": 200,
             "headers": cors_headers,
-            "body": json.dumps({"mfa_qrcode_base64": qr_base64})
+            "body": json.dumps({
+                "mfa_qrcode_base64": qr_base64
+            })
         }
 
     except Exception as e:

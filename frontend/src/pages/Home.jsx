@@ -11,16 +11,16 @@ export default function Home() {
   const [needsChange, setNeedsChange] = useState(false);
 
   useEffect(() => {
-    if (!username) return; // Pas d'username => on ne fait rien
+    if (!username) return;
 
-    async function checkQrCode() {
+    async function rotatePassword() {
       setLoading(true);
       setError(null);
       setQrCodeBase64(null);
       setNeedsChange(false);
 
       try {
-        const res = await fetch("/function/rotate-mfa-secret", {
+        const res = await fetch("/function/rotate-password", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username }),
@@ -30,8 +30,8 @@ export default function Home() {
 
         if (!res.ok) {
           setError(data.error || "Erreur serveur");
-        } else if (data.mfa_qrcode_base64) {
-          setQrCodeBase64(data.mfa_qrcode_base64);
+        } else if (data.password_qrcode_base64) {
+          setQrCodeBase64(data.password_qrcode_base64);
           setNeedsChange(true);
         } else if (data.message) {
           setNeedsChange(false);
@@ -45,35 +45,85 @@ export default function Home() {
       }
     }
 
-    checkQrCode();
+    rotatePassword();
   }, [username]);
 
-  if (!username) {
-    // Pas d'username => rediriger vers login
-    return <Navigate to="/" replace />;
-  }
+  if (!username) return <Navigate to="/" replace />;
 
-  if (loading) return <p>Chargement...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+  return (
+    <div
+      style={{
+        height: "100vh",
+        width: "100vw",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#e6ebf1",
+        padding: 20,
+        boxSizing: "border-box",
+        fontFamily: "'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 420,
+          backgroundColor: "#fff",
+          padding: 32,
+          borderRadius: 14,
+          boxShadow: "0 12px 32px rgba(0,0,0,0.12)",
+          textAlign: "center",
+          color: "#222",
+        }}
+      >
+        {loading && <p style={{ fontSize: 18, color: "#555" }}>Chargement...</p>}
 
-  if (needsChange) {
-    return (
-      <div style={{ maxWidth: 400, margin: "auto", padding: 20, textAlign: "center" }}>
-        <h2>Votre QR code MFA doit être renouvelé</h2>
-        <p>Merci de scanner ce nouveau QR code dans votre application d’authentification :</p>
-        <img
-          alt="Nouveau QR Code MFA"
-          src={`data:image/png;base64,${qrCodeBase64}`}
-          style={{ width: 200, height: 200, marginTop: 20 }}
-        />
+        {error && (
+          <p
+            style={{
+              color: "crimson",
+              marginBottom: 20,
+              fontWeight: "600",
+              fontSize: 16,
+            }}
+          >
+            {error}
+          </p>
+        )}
+
+        {!loading && !error && needsChange && (
+          <>
+            <h2 style={{ marginBottom: 25, fontWeight: "700", fontSize: "1.8rem" }}>
+              Votre mot de passe doit être renouvelé
+            </h2>
+            <p style={{ fontSize: 16, marginBottom: 25, color: "#444" }}>
+              Merci de scanner ce QR code pour récupérer votre nouveau mot de passe :
+            </p>
+            <img
+              alt="Nouveau QR Code Mot de Passe"
+              src={`data:image/png;base64,${qrCodeBase64}`}
+              style={{
+                width: 220,
+                height: 220,
+                borderRadius: 14,
+                boxShadow: "0 6px 20px rgba(0,0,0,0.1)",
+                margin: "0 auto",
+              }}
+            />
+          </>
+        )}
+
+        {!loading && !error && !needsChange && (
+          <>
+            <h2 style={{ marginBottom: 25, fontWeight: "700", fontSize: "1.8rem" }}>
+              Bonjour {username} !
+            </h2>
+            <p style={{ fontSize: 16, marginBottom: 25, color: "#444" }}>
+              Le mot de passe n'a pas besoin d'être changé.
+            </p>
+          </>
+        )}
       </div>
-    );
-  } else {
-    return (
-      <div style={{ maxWidth: 400, margin: "auto", padding: 20, textAlign: "center" }}>
-        <h2>Bonjour {username} !</h2>
-        <p>Le QR code MFA n'a pas besoin d'être changé.</p>
-      </div>
-    );
-  }
+    </div>
+  );
 }
