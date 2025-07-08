@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, Navigate } from "react-router-dom";
+import { useLocation, Navigate, useNavigate } from "react-router-dom";
 
 export default function Home() {
+  const navigate = useNavigate();
   const location = useLocation();
   const username = location.state?.username;
 
@@ -123,6 +124,32 @@ export default function Home() {
             </p>
           </>
         )}
+        <br/>
+        <button
+          onClick={() => navigate("/login")}
+          style={{
+            marginTop: 30,
+            padding: "12px 24px",
+            fontSize: 16,
+            fontWeight: "600",
+            backgroundColor: "#e74c3c",
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            cursor: "pointer",
+            boxShadow: "0 4px 12px rgba(231, 76, 60, 0.4)",
+            transition: "background-color 0.3s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = "#c0392b";
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = "#e74c3c";
+          }}
+        >
+          Se déconnecter
+        </button>
+
       </div>
     </div>
   );

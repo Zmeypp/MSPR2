@@ -176,6 +176,25 @@ export default function Login() {
             {error}
           </p>
         )}
+        <p style={{ marginTop: 30 }}>
+          Pas encore de compte ?{" "}
+          <button
+            onClick={() => navigate("/register")}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#4a90e2",
+              fontWeight: "600",
+              cursor: "pointer",
+              textDecoration: "underline",
+              fontSize: "1rem",
+              padding: 0,
+            }}
+          >
+            Inscrivez-vous
+          </button>
+        </p>
+
       </div>
     </div>
   );

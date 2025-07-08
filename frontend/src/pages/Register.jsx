@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Register() {
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [qrPassword, setQrPassword] = useState(null);
   const [error, setError] = useState(null);
@@ -145,6 +147,26 @@ export default function Register() {
             {error}
           </p>
         )}
+
+        <p style={{ marginTop: 30 }}>
+          Déjà inscrit ?{" "}
+          <button
+            onClick={() => navigate("/login")}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#4a90e2",
+              fontWeight: "600",
+              cursor: "pointer",
+              textDecoration: "underline",
+              fontSize: "1rem",
+              padding: 0,
+            }}
+          >
+            Connectez-vous
+          </button>
+        </p>
+
 
         {qrPassword && (
           <div
